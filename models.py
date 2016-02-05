@@ -46,6 +46,12 @@ class ProfileForm(messages.Message):
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
+    websafeKey = messages.StringField(5)
+
+
+class ProfileForms(messages.Message):
+    """ProfileForms -- multiple Profile outbound form messages"""
+    items = messages.MessageField(ProfileForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):
@@ -150,12 +156,13 @@ class SessionForm(messages.Message):
     """SessionForm -- Conference Session outbound form message"""
     name = messages.StringField(1)
     highlights = messages.StringField(2)
-    speaker = messages.StringField(3)
+    speaker = messages.StringField(3)  # urlsafe key of speaker Profile
     typeOfSession = messages.EnumField('SessionType', 4)
     date = messages.StringField(5)
     duration = messages.IntegerField(6, variant=messages.Variant.INT32)
     startTime = messages.StringField(7)
     websafeConferenceKey = messages.StringField(8)
+    websafeKey = messages.StringField(9)
 
 
 class SessionForms(messages.Message):

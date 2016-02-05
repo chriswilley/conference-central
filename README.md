@@ -77,6 +77,9 @@ Conference Sessions are entities in the datastore like Conferences and Profiles.
 
 Although the Session object is implemented much like the Conference object, one difference is the use of an EnumProperty for Session type. The Enum is reinforced with an EnumField in the Form, so that users are forced to enter a Session type that exists in the list. I chose to do this because it seemed like a bad idea to let users randonly choose Session types; if one user adds a "keynote" type and another adds a "Keynote" type, those would be seen as different within the datastore and would make querying problematic. In addition, the Enum provides administrators of the Conference Central application with a way to standardize the way conference sessions are created. This could help in future functionality, for example querying across conferences.
 
+When creating Sessions, the 'speaker' field should contain the websafeKey for the Profile object of the speaker (see Speakers section below).
+
+
 ### Speakers
 
 I chose to use the Profile entity for Session speakers rather than a simple StringProperty or another entity. I did this to keep things simple, and also it made sense not to create another entity that would essentially have the same fields as Profile (plus speakers probably want conference tee shirts as much as attendees do). Using a simple StringField didn't make sense to me because it could lead to query problems due to a misspelled name, as well as not providing a lot of functionality.
@@ -91,6 +94,13 @@ sessions = Session.query(Session.speaker == speaker.key)
 ```
 
 No need for complicated matching logic.
+
+When creating Sessions, you can make use of the getProfiles() endpoint to find the speaker you want to attach to the new Session. If the speaker doesn't yet have a Profile, you can create one using the createProfile() endpoint. These endpoints will give you the Profile entity key in the field called 'websafeKey'.
+
+
+## Wish Lists
+
+I chose to make Session wish lists for users a repeated StringProperty in the Profile entity, just like conferenceKeysToAttend. To add a Session to the wish list, you need the Session entity's websafeKey which you can get from a number of endpoints including querySessions(). Then you can use the addSessionToWishlist() endpoint and place the Session entity websafeKey in the sessionKey field.
 
 
 ## Additional query types
