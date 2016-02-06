@@ -145,7 +145,7 @@ class Session(ndb.Model):
     """Session -- Conference Session object"""
     name = ndb.StringProperty(required=True)
     highlights = ndb.StringProperty()
-    speaker = ndb.KeyProperty(kind=Profile)
+    speaker = ndb.KeyProperty(kind='Profile')
     typeOfSession = msgprop.EnumProperty(SessionType)
     date = ndb.DateProperty(required=True)
     duration = ndb.IntegerProperty()  # length of session in minutes
@@ -157,12 +157,13 @@ class SessionForm(messages.Message):
     name = messages.StringField(1)
     highlights = messages.StringField(2)
     speaker = messages.StringField(3)  # urlsafe key of speaker Profile
-    typeOfSession = messages.EnumField('SessionType', 4)
-    date = messages.StringField(5)
-    duration = messages.IntegerField(6, variant=messages.Variant.INT32)
-    startTime = messages.StringField(7)
-    websafeConferenceKey = messages.StringField(8)
-    websafeKey = messages.StringField(9)
+    speakerName = messages.StringField(4)
+    typeOfSession = messages.EnumField('SessionType', 5)
+    date = messages.StringField(6)
+    duration = messages.IntegerField(7, variant=messages.Variant.INT32)
+    startTime = messages.StringField(8)
+    websafeConferenceKey = messages.StringField(9)
+    websafeKey = messages.StringField(10)
 
 
 class SessionForms(messages.Message):

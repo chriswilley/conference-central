@@ -135,7 +135,6 @@ SESSION_WISHLIST_ADD = endpoints.ResourceContainer(
 
 SESSION_WISHLIST = endpoints.ResourceContainer(
     message_types.VoidMessage,
-    websafeConferenceKey=messages.StringField(1),
 )
 
 SESSION_QUERY = endpoints.ResourceContainer(
@@ -445,9 +444,15 @@ class ConferenceApi(remote.Service):
                 elif (field.name == 'speaker'):
                     if (getattr(_session, 'speaker')):
                         speaker = getattr(_session, 'speaker').get()
-                        setattr(sf, field.name, speaker.displayName)
+                        setattr(sf, 'speakerName', speaker.displayName)
+                        setattr(
+                            sf,
+                            field.name,
+                            getattr(_session, 'speaker').urlsafe()
+                        )
                     else:
-                        setattr(sf, field.name, 'TBA')
+                        setattr(sf, 'speakerName', 'TBA')
+                        setattr(sf, field.name, None)
                 else:
                     setattr(sf, field.name, getattr(_session, field.name))
             elif field.name == "websafeKey":
@@ -478,6 +483,8 @@ class ConferenceApi(remote.Service):
                 request, field.name) for field in request.all_fields()
         }
         del data['websafeConferenceKey']
+        del data['websafeKey']
+        del data['speakerName']
 
         # find the conference that this session belongs to
         conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
@@ -690,9 +697,9 @@ class ConferenceApi(remote.Service):
         try:
             sessions = sessions.filter(
                 Session.typeOfSession == SessionType.lookup_by_name(s_type))
-        except:
-            raise endpoints.NotFoundException(
-                "No sessions found for type '%s'." % s_type)
+        except KeyError:
+            raise endpoints.BadRequestException(
+                "Session type '%s' is invalid." % s_type)
         # return set of SessionForm objects per Session
         return SessionForms(
             items=[
@@ -811,7 +818,7 @@ class ConferenceApi(remote.Service):
     @endpoints.method(
         SESSION_WISHLIST_ADD,
         BooleanMessage,
-        path='session/{sessionKey}/wishlist/add',
+        path='session/wishlist/{sessionKey}',
         http_method='POST',
         name='addSessionToWishlist'
     )
@@ -822,7 +829,7 @@ class ConferenceApi(remote.Service):
     @endpoints.method(
         SESSION_WISHLIST_ADD,
         BooleanMessage,
-        path='session/{sessionKey}/wishlist/remove',
+        path='session/wishlist/{sessionKey}',
         http_method='DELETE',
         name='deleteSessionInWishlist'
     )
@@ -900,7 +907,7 @@ class ConferenceApi(remote.Service):
         # preload necessary data items
         user = endpoints.get_current_user()
         if not user:
-            # require authorization to create Sessions
+            # require authorization to create Profiles
             raise endpoints.UnauthorizedException('Authorization required')
         user_id = getUserId(user)
 
@@ -932,7 +939,8 @@ class ConferenceApi(remote.Service):
         data['key'] = p_key
 
         Profile(**data).put()
-        return request
+        # return request
+        return self._copyProfileToForm(p_key.get())
 
     @endpoints.method(
         ProfileForm,
